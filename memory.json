@@ -1,24 +1,78 @@
 {
   "profile": {
-    "monthly_income": 1400,
-    "debts": [
-      {
-        "name": "Credit Card Debt",
-        "amount": 3200,
-        "apr": 21
-      },
-      {
-        "name": "Student Loans",
-        "amount": 8500,
-        "apr": 5.5
-      }
-    ],
-    "goals": [
-      "Be completely debt-free by graduation (2 years)",
-      "Save $5,000 for a trip to Japan after graduation"
-    ],
-    "timeframe": "2 years (until graduation), with an additional goal thereafter",
-    "monthly_expenses": 900
+    "input": "I make $2,000/month, have $3,000 in credit card debt at 20% APR, expenses $1,200, want debt free in 1 year.",
+    "result": {
+      "monthly_income": 2000,
+      "monthly_expenses": 1200,
+      "debts": [
+        {
+          "name": "Credit Card",
+          "balance": 3000,
+          "apr": 20,
+          "monthly_payment": 0
+        },
+        {
+          "name": "Student Loans",
+          "balance": 0,
+          "apr": 0,
+          "monthly_payment": 0
+        }
+      ],
+      "situation_summary": "You earn $2,000 monthly, spend $1,200 on expenses, leaving $800 for debt repayment and savings. You have $3,000 in credit card debt at 20% APR, costing about $50 monthly in interest.",
+      "why_this_order": "We prioritize building a small emergency fund first to avoid new debt from unexpected expenses, then attack the high-interest credit card debt aggressively because its 20% APR far exceeds any investment returns.",
+      "monthly_plan": [
+        {
+          "label": "Months 1-3",
+          "focus": "Emergency Fund First",
+          "allocations": {
+            "Emergency Fund": 200,
+            "Credit Card": 600,
+            "Student Loans": 0
+          },
+          "guidance": "Save $200/month for emergencies while paying $600 toward your credit card.",
+          "milestone": "Emergency fund reaches $600"
+        },
+        {
+          "label": "Months 4-6",
+          "focus": "Attack Credit Card Debt",
+          "allocations": {
+            "Emergency Fund": 0,
+            "Credit Card": 800,
+            "Student Loans": 0
+          },
+          "guidance": "Put all disposable income toward the credit card to eliminate it quickly.",
+          "milestone": "Credit card debt paid off (by month 5)"
+        },
+        {
+          "label": "Months 7-9",
+          "focus": "Accelerate Debt Payoff",
+          "allocations": {
+            "Emergency Fund": 800,
+            "Credit Card": 0,
+            "Student Loans": 0
+          },
+          "guidance": "Redirect the former credit card payments to build your emergency fund faster.",
+          "milestone": "Emergency fund grows to $3,000"
+        },
+        {
+          "label": "Months 10-12",
+          "focus": "Build Momentum",
+          "allocations": {
+            "Emergency Fund": 800,
+            "Credit Card": 0,
+            "Student Loans": 0
+          },
+          "guidance": "Continue saving aggressively to prepare for future financial goals.",
+          "milestone": "Emergency fund reaches $5,400"
+        }
+      ],
+      "hysa_rate": "5.10% APY",
+      "hysa_tip": "Put your emergency fund in a high-yield savings account to earn interest while keeping it safe and accessible.",
+      "sp500_note": "Analysts forecast an average return of +12% for the S&P 500 in 2026, driven by continued earnings growth.",
+      "key_insight": "Paying off high-interest credit card debt guarantees a 20% return, better than any investment you could make.",
+      "debt_free_month": 5,
+      "debt_free_note": "You'll be debt-free in just 5 months, freeing up $800/month for your emergency fund and other goals."
+    }
   },
   "plans": [
     {
@@ -45,6 +99,239 @@
       "timestamp": "2026-05-16T04:31:46.924256",
       "input": "I'm a 20 year old UCSC student. I make $1,400/month from a part-time job and a small monthly allowance from my parents. I have $3,200 in credit card debt at 21% APR and $8,500 in student loans at 5.5%. My monthly expenses are about $900. I want to be completely debt-free by the time I graduate in 2 years, and eventually save up $5,000 for a trip to Japan after graduation.\nYou said: i like the everything about the code, esp the thinking animation with the apis so keep that but fix the output so it doesnt look like this: Financial Roadmap f\u2026",
       "roadmap": "Below is your comprehensive financial roadmap, formatted for clarity, with specific actionable steps, dollar amounts, and a \"What-If\" scenario for a 10% raise. Since you appreciated the thinking behind the process but wanted an improved output format, I've kept the detailed analysis and enhanced the presentation.\n\n### **Financial Situation Analysis**\n\n| **Category** | **Details** |\n| --- | --- |\n| **Monthly Income** | $1,400 ($1,000 part-time job + $400 allowance) |\n| **Debts**      | - **Credit Card Debt**: $3,200 at 21% APR <br>- **Student Loans**: $8,500 at 5.5% APR |\n| **Monthly Expenses** | $900 |\n| **Goals**       | 1. Debt-free by graduation (2 years) <br>2. Save $5,000 for a Japan trip post-graduation |\n| **Timeframe**   | Primary: 2 years (until graduation) <br>Secondary: Post-graduation for the trip |\n\n### **Prioritized Financial Steps**\n\n1. **Emergency Fund (EF) Seed**: Ensure a small safety net\n2. **High-Interest Debt (Credit Card)**\n3. **Other Debts (Student Loans)**\n4. **Goal Achievement (Trip to Japan)**\n\n### **Month-by-Month Roadmap for the Next 12 Months**\n\n| **Month** | **Emergency Fund** | **Credit Card Debt** | **Student Loans** | **Savings for Japan** | **Notes** |\n| --- | --- | --- | --- | --- | --- |\n| **1-3**  | **Save $500** ($167/month) | - | - | - | **Seed EF** |\n| **4-12** | **Maintain $500 EF** | **Pay $543/month** (Total: $6,516 over 12 months, leaving $684 owed) @ 21% APR | - | - | **Aggressive Credit Card Debt Payoff**. Consider balance transfer if feasible with your credit score. |\n|          |                     | **(Interest Saved by Paying Aggressively:** Approximately $943 over 12 months)** |          |          |  |\n\n### **Post-12 Months Strategy (Until Graduation)**\n\n- **Months 13-24**:\n  - **Credit Card Debt**: Finish off the remaining $684 in the first month (Month 13), then allocate that money towards student loans.\n  - **Student Loans**: Pay $1,042/month (@ 5.5% APR) to finish before graduation.\n  - **Savings for Japan**: Not started yet, focusing on debt first.\n\n### **Detailed Post-12 Months Breakdown**\n\n| **Period** | **Action** | **Monthly Allocation** |\n| --- | --- | --- |\n| **Month 13** | Finish Credit Card Debt | $684 (then redirect to Student Loans) |\n| **Months 14-24** | **Student Loans** | $1,042/month |\n| **After Graduation** | **Savings for Japan** | **Calculate Based on New Income** (Assuming increased income post-graduation, allocate a significant portion towards saving for the trip) |\n\n### **Specific Dollar Amounts for Initial 12 Months**\n\n| **Category** | **Monthly** | **Total (12 Months)** |\n| --- | --- | --- |\n| **Income** | $1,400 | $16,800 |\n| **Expenses** | -$900 | -$10,800 |\n| **Emergency Fund (First 3 Months)** | -$167 | -$500 |\n| **Credit Card Debt (Months 4-12)** | -$543 | -$6,516 |\n| **Disposable/Unallocated** | $0 (Fully Allocated) | $0 |\n\n### **Live Rates Reference**\n\n- **High-Yield Savings Account (for Emergency Fund)**: 5.00% APY (e.g., Varo Bank, AdelFi) - **Utilized for Emergency Fund to grow the $500 seed.**\n- **Mortgage Rates & S&P 500 Outlook**: Not directly applicable to the immediate 2-year plan but will be considered in long-term financial planning post-graduation.\n\n### **What-If Scenario: 10% Raise ($1,540/month)**\n\n| **Adjustment** | **Original** | **With 10% Raise** | **Impact** |\n| --- | --- | --- | --- |\n| **Credit Card Debt Payoff** | 12 months ($6,516) | **9 months** ($4,860) | **Save 3 Months & $1,656 in Interest** |\n| **Emergency Fund** | $500 | **Could increase to $1,000 in 3 months** | **Enhanced Safety Net** |\n| **Student Loans/Post-Grad Savings** | - | **Earlier or More Aggressive Payments Possible** | **Faster Debt Repayment or Earlier Trip Savings** |"
+    },
+    {
+      "timestamp": "2026-05-16T08:48:17.172127",
+      "input": "I'm a 20 year old UCSC student. I make $1,400/month from a part-time job and a small monthly allowance from my parents. I have $3,200 in credit card debt at 21% APR and $8,500 in student loans at 5.5%. My monthly expenses are about $900. I want to be completely debt-free by the time I graduate in 2 years, and eventually save up $5,000 for a trip to Japan after graduation.",
+      "roadmap": "**Financial Roadmap for [Your Name]**\n\n### **1. Situation Analysis**\n\n* **Strengths:**\n\t+ Steady income ($1,400/month)\n\t+ Clear, achievable goals\n* **Challenges:**\n\t+ High-interest credit card debt ($3,200 at 21% APR)\n\t+ Significant student loans ($8,500 at 5.5% APR, though relatively lower interest)\n\t+ Limited monthly surplus after expenses\n* **Goals:**\n\t1. Debt-free by graduation (2 years)\n\t2. Save $5,000 for a Japan trip (post-graduation)\n\n### **2. Prioritized Financial Steps**\n\n1. **Emergency Fund** (Minimal, to ensure debt repayment isn't interrupted)\n2. **High-Interest Debt Repayment** (Credit Card)\n3. **Other Debt Repayment** (Student Loans)\n4. **Savings for Goal** (Japan Trip, post-debt repayment)\n\n### **3. Month-by-Month Roadmap (Next 12 Months)**\n\n| **Month** | **Emergency Fund** | **Credit Card Debt ($3,200, 21% APR)** | **Student Loans ($8,500, 5.5% APR)** | **Monthly Expenses** | **Remaining/Actions** |\n| --- | --- | --- | --- | --- | --- |\n| **1-3**  | **Build Emergency Fund**: $100/month, Total: $300 | $0 (Focus on EF first) | $0 (Focus on EF & then Credit Card) | $900 | **Remaining**: $400 (Invested in HYSA at 5.00% APY for now) |\n| **4-12** | **Maintain EF** ($300, Review/Adjust as needed) | **Aggressive Repayment**:<br>- Months 4-6: $500/month<br>- Months 7-12: $600/month | $0 (Focus on Credit Card first) | $900 | **Remaining** (Varies, see below for repayment schedule) |\n\n#### **Credit Card Debt Repayment Schedule (Months 4-12)**\n\n| **Period** | **Monthly Payment** | **Interest Paid** | **Principal Paid** | **Balance** |\n| --- | --- | --- | --- | --- |\n| **Months 4-6** | $500 | ~$53/month avg. | ~$447/month avg. | **Balance after 3 months**: ~$2,259 |\n| **Months 7-12** | $600 | ~$34/month avg. (declining) | ~$566/month avg. | **Projected Payoff by Month 10**, **Months 11-12**: Allocate $600 to Student Loans |\n\n#### **Projected Financials by End of Month 12**\n\n* **Emergency Fund**: $300 (Review and potentially increase)\n* **Credit Card Debt**: **PAID OFF**\n* **Student Loans**: $8,500 - ($600 * 2) = $8,300\n* **HYSA (from Remaining)**: ~$4,800 (Assuming $400/month for 12 months, earning 5.00% APY)\n\n### **4. Post-12 Months Strategy (Until Graduation)**\n\n* **Months 13-24**:\n\t+ **Student Loans**: Increase payment to maximum feasible with income growth (aim for >$600/month if possible)\n\t+ **Emergency Fund**: Gradually increase to 3-6 months of expenses\n\t+ **Japan Trip Fund**: Begin allocating a small percentage towards this goal, increasing as debt decreases\n\n### **5. What-If Scenario: 10% Raise ($1,540/month)**\n\n* **Accelerated Repayment**:\n\t+ **Credit Card Debt** could be paid off by **Month 8**\n\t+ **Student Loans**: Increase monthly payment to ~$800/month, significantly reducing the principal faster\n* **Adjusted 12-Month Projections**:\n\t+ **Emergency Fund**: Could reach $600-$1,000\n\t+ **HYSA**: Potentially ~$6,000\n\t+ **Student Loans**: $8,500 - ($800 * 16) = $5,200 (Hypothetical, assuming the raise is immediate and fully dedicated to debt)\n\n### **Action Items & Advice**\n\n* **Negotiate Credit Card APR** if possible, to reduce interest burden.\n* **Review and Adjust** emergency fund size based on comfort level and expenses variability.\n* **Consider Income Increase Strategies** (e.g., more hours, side jobs) to accelerate progress.\n* **Automate Payments** for consistency and to avoid late fees.\n* **Regularly Review Progress** and adjust the roadmap as necessary.\n\n### **Encouragement**\n\nYou're taking the first, crucial steps towards financial stability and achieving your goals. Sticking to this plan, especially the aggressive debt repayment, will set you up for success. Celebrate each milestone, and don't hesitate to seek advice if your financial situation changes.\n\n---\n\n**Live Rates Reference in Plan:**\n\n* **High-Yield Savings Account (HYSA) Rate**: 5.00% APY (for emergency fund and surplus savings)\n* **Mortgage Rates** (Not directly applicable to current plan but mentioned for awareness)\n* **S&P 500 Outlook** (Not directly integrated into this short-term debt repayment and savings plan, but worth considering for long-term investment strategies post-debt repayment)"
+    },
+    {
+      "timestamp": "2026-05-16T10:37:36.589222",
+      "input": "I'm 20, make $2,800/month as a software engineering intern, have $3,500 in credit card debt at 19% APR and $12,000 in student loans at 4.5%. Monthly expenses are $1,400. I want to pay off my credit card in 6 months, build a $5,000 emergency fund, and start investing by next year.",
+      "structured": {
+        "monthly_income": 2800,
+        "monthly_expenses": 1400,
+        "debts": [
+          {
+            "name": "Credit Card",
+            "balance": 3500,
+            "apr": 19,
+            "monthly_payment": 583
+          },
+          {
+            "name": "Student Loans",
+            "balance": 12000,
+            "apr": 4.5,
+            "monthly_payment": 100
+          }
+        ],
+        "situation_summary": "You're earning a strong $2,800/month but face high-interest credit card debt. Your expenses are manageable, leaving $1,400 for debt and savings. The biggest lever is aggressively tackling the credit card debt.",
+        "why_this_order": "We prioritize the credit card debt due to its high APR, then build a modest emergency fund before focusing on student loans and investing, as the interest savings justify the initial focus.",
+        "monthly_plan": [
+          {
+            "label": "Months 1-3",
+            "focus": "Emergency Fund Foundation & Debt Attack",
+            "allocations": {
+              "Emergency Fund": 200,
+              "Credit Card": 800,
+              "Student Loans": 100
+            },
+            "guidance": "Monitor credit card balance to ensure on-track for 6-month payoff while starting emergency fund.",
+            "milestone": null
+          },
+          {
+            "label": "Months 4-6",
+            "focus": "Credit Card Debt Elimination",
+            "allocations": {
+              "Emergency Fund": 300,
+              "Credit Card": 900,
+              "Student Loans": 100
+            },
+            "guidance": "Increase emergency fund contributions slightly once credit card debt is nearly cleared.",
+            "milestone": "Credit card debt paid off \u2014 a major milestone!"
+          },
+          {
+            "label": "Months 7-9",
+            "focus": "Emergency Fund Completion",
+            "allocations": {
+              "Emergency Fund": 500,
+              "Credit Card": 0,
+              "Student Loans": 200
+            },
+            "guidance": "Aggressively fund emergency to reach $5,000 goal, slightly increasing student loan payments.",
+            "milestone": "Emergency fund complete \u2014 you now have a real safety net."
+          },
+          {
+            "label": "Months 10-12",
+            "focus": "Investing & Student Loan Reduction",
+            "allocations": {
+              "Emergency Fund": 0,
+              "Credit Card": 0,
+              "Student Loans": 400
+            },
+            "guidance": "Explore tax-advantaged accounts (e.g., Roth IRA) for investments, increasing student loan payments further if possible.",
+            "milestone": null
+          }
+        ],
+        "hysa_rate": "5.10% APY",
+        "hysa_tip": "Place your emergency fund in a High-Yield Savings Account (HYSA) to earn 5.10% APY, ensuring easy access and growth.",
+        "sp500_note": "The S&P 500's forecasted 12% return in 2026 makes it an attractive investment option once your high-interest debt and emergency fund are addressed.",
+        "key_insight": "Paying off the credit card in 6 months saves approximately $943 in interest (based on $3,500 balance and 19% APR), a significant early win.",
+        "debt_free_month": 6,
+        "debt_free_note": "You'll be credit card debt-free in just 6 months, a huge accomplishment that frees up $583/month for other goals."
+      }
+    },
+    {
+      "timestamp": "2026-05-16T11:55:22.311796",
+      "input": "I make $2,000/month, have $3,000 in credit card debt at 20% APR, expenses $1,200, want debt free in 1 year.",
+      "structured": {
+        "monthly_income": 2000,
+        "monthly_expenses": 1200,
+        "debts": [
+          {
+            "name": "Credit Card",
+            "balance": 3000,
+            "apr": 20,
+            "monthly_payment": 0
+          },
+          {
+            "name": "Student Loans",
+            "balance": 0,
+            "apr": 0,
+            "monthly_payment": 0
+          }
+        ],
+        "situation_summary": "You earn $2,000 monthly, spend $1,200 on expenses, leaving $800 for debt repayment and savings. You have $3,000 in credit card debt at 20% APR, costing about $50 monthly in interest.",
+        "why_this_order": "We prioritize building a small emergency fund first to avoid new debt from unexpected expenses, then attack the high-interest credit card debt aggressively because its 20% APR far exceeds any investment returns.",
+        "monthly_plan": [
+          {
+            "label": "Months 1-3",
+            "focus": "Emergency Fund First",
+            "allocations": {
+              "Emergency Fund": 200,
+              "Credit Card": 600,
+              "Student Loans": 0
+            },
+            "guidance": "Save $200/month for emergencies while paying $600 toward your credit card.",
+            "milestone": "Emergency fund reaches $600"
+          },
+          {
+            "label": "Months 4-6",
+            "focus": "Attack Credit Card Debt",
+            "allocations": {
+              "Emergency Fund": 0,
+              "Credit Card": 800,
+              "Student Loans": 0
+            },
+            "guidance": "Put all disposable income toward the credit card to eliminate it quickly.",
+            "milestone": "Credit card debt paid off (by month 5)"
+          },
+          {
+            "label": "Months 7-9",
+            "focus": "Accelerate Debt Payoff",
+            "allocations": {
+              "Emergency Fund": 800,
+              "Credit Card": 0,
+              "Student Loans": 0
+            },
+            "guidance": "Redirect the former credit card payments to build your emergency fund faster.",
+            "milestone": "Emergency fund grows to $3,000"
+          },
+          {
+            "label": "Months 10-12",
+            "focus": "Build Momentum",
+            "allocations": {
+              "Emergency Fund": 800,
+              "Credit Card": 0,
+              "Student Loans": 0
+            },
+            "guidance": "Continue saving aggressively to prepare for future financial goals.",
+            "milestone": "Emergency fund reaches $5,400"
+          }
+        ],
+        "hysa_rate": "5.10% APY",
+        "hysa_tip": "Put your emergency fund in a high-yield savings account to earn interest while keeping it safe and accessible.",
+        "sp500_note": "Analysts forecast an average return of +12% for the S&P 500 in 2026, driven by continued earnings growth.",
+        "key_insight": "Paying off high-interest credit card debt guarantees a 20% return, better than any investment you could make.",
+        "debt_free_month": 5,
+        "debt_free_note": "You'll be debt-free in just 5 months, freeing up $800/month for your emergency fund and other goals."
+      }
+    },
+    {
+      "timestamp": "2026-05-16T12:01:32.445974",
+      "input": "I make $2,000/month, have $3,000 in credit card debt at 20% APR, expenses $1,200, want debt free in 1 year.",
+      "structured": {
+        "monthly_income": 2000,
+        "monthly_expenses": 1200,
+        "debts": [
+          {
+            "name": "Credit Card",
+            "balance": 3000,
+            "apr": 20,
+            "monthly_payment": 0
+          },
+          {
+            "name": "Student Loans",
+            "balance": 0,
+            "apr": 0,
+            "monthly_payment": 0
+          }
+        ],
+        "situation_summary": "You earn $2,000 monthly, spend $1,200 on expenses, leaving $800 for debt repayment and savings. You have $3,000 in credit card debt at 20% APR, costing about $50 monthly in interest.",
+        "why_this_order": "We prioritize building a small emergency fund first to avoid new debt from unexpected expenses, then attack the high-interest credit card debt aggressively because its 20% APR far exceeds any investment returns.",
+        "monthly_plan": [
+          {
+            "label": "Months 1-3",
+            "focus": "Emergency Fund First",
+            "allocations": {
+              "Emergency Fund": 200,
+              "Credit Card": 600,
+              "Student Loans": 0
+            },
+            "guidance": "Save $200/month for emergencies while paying $600 toward your credit card.",
+            "milestone": "Emergency fund reaches $600"
+          },
+          {
+            "label": "Months 4-6",
+            "focus": "Attack Credit Card Debt",
+            "allocations": {
+              "Emergency Fund": 0,
+              "Credit Card": 800,
+              "Student Loans": 0
+            },
+            "guidance": "Put all disposable income toward the credit card to eliminate it quickly.",
+            "milestone": "Credit card debt paid off (by month 5)"
+          },
+          {
+            "label": "Months 7-9",
+            "focus": "Accelerate Debt Payoff",
+            "allocations": {
+              "Emergency Fund": 800,
+              "Credit Card": 0,
+              "Student Loans": 0
+            },
+            "guidance": "Redirect the former credit card payments to build your emergency fund faster.",
+            "milestone": "Emergency fund grows to $3,000"
+          },
+          {
+            "label": "Months 10-12",
+            "focus": "Build Momentum",
+            "allocations": {
+              "Emergency Fund": 800,
+              "Credit Card": 0,
+              "Student Loans": 0
+            },
+            "guidance": "Continue saving aggressively to prepare for future financial goals.",
+            "milestone": "Emergency fund reaches $5,400"
+          }
+        ],
+        "hysa_rate": "5.10% APY",
+        "hysa_tip": "Put your emergency fund in a high-yield savings account to earn interest while keeping it safe and accessible.",
+        "sp500_note": "Analysts forecast an average return of +12% for the S&P 500 in 2026, driven by continued earnings growth.",
+        "key_insight": "Paying off high-interest credit card debt guarantees a 20% return, better than any investment you could make.",
+        "debt_free_month": 5,
+        "debt_free_note": "You'll be debt-free in just 5 months, freeing up $800/month for your emergency fund and other goals."
+      }
     }
   ],
   "sessions": [
@@ -67,6 +354,22 @@
     {
       "timestamp": "2026-05-16T04:31:11.278367",
       "input": "I'm a 20 year old UCSC student. I make $1,400/month from a part-time job and a small monthly allowance from my parents. I have $3,200 in credit card debt at 21% APR and $8,500 in student loans at 5.5%. My monthly expenses are about $900. I want to be completely debt-free by the time I graduate in 2 years, and eventually save up $5,000 for a trip to Japan after graduation.\nYou said: i like the everything about the code, esp the thinking animation with the apis so keep that but fix the output so it doesnt look like this: Financial Roadmap f\u2026"
+    },
+    {
+      "timestamp": "2026-05-16T08:47:17.977004",
+      "input": "I'm a 20 year old UCSC student. I make $1,400/month from a part-time job and a small monthly allowance from my parents. I have $3,200 in credit card debt at 21% APR and $8,500 in student loans at 5.5%. My monthly expenses are about $900. I want to be completely debt-free by the time I graduate in 2 years, and eventually save up $5,000 for a trip to Japan after graduation."
+    },
+    {
+      "timestamp": "2026-05-16T10:37:36.588295",
+      "input": "I'm 20, make $2,800/month as a software engineering intern, have $3,500 in credit card debt at 19% APR and $12,000 in student loans at 4.5%. Monthly expenses are $1,400. I want to pay off my credit card in 6 months, build a $5,000 emergency fund, and start investing by next year."
+    },
+    {
+      "timestamp": "2026-05-16T11:55:22.311454",
+      "input": "I make $2,000/month, have $3,000 in credit card debt at 20% APR, expenses $1,200, want debt free in 1 year."
+    },
+    {
+      "timestamp": "2026-05-16T12:01:32.445734",
+      "input": "I make $2,000/month, have $3,000 in credit card debt at 20% APR, expenses $1,200, want debt free in 1 year."
     }
   ]
 }

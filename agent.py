@@ -1,18 +1,13 @@
-from openai import OpenAI
+import subprocess
+import json
+import os
+from datetime import datetime
 from tavily import TavilyClient
 from dotenv import load_dotenv
-import os
-import json
-from datetime import datetime
 
 load_dotenv()
 
-nvidia_client = OpenAI(
-    base_url="https://integrate.api.nvidia.com/v1",
-    api_key=os.getenv("NVIDIA_API_KEY")
-)
 tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
-
 MEMORY_FILE = "memory.json"
 
 
@@ -48,31 +43,49 @@ def get_live_rates():
     }
 
 
-def ask_nemotron(system_prompt, user_message, max_tokens=1400):
-    print("  Nemotron reasoning...")
-    response = nvidia_client.chat.completions.create(
-        model="nvidia/llama-3.3-nemotron-super-49b-v1",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message}
-        ],
-        max_tokens=max_tokens,
-        temperature=0.3
-    )
-    return response.choices[0].message.content
+def ask_openclaw(message, max_retries=2):
+    """Send a message through OpenClaw gateway and return the response."""
+    print("  OpenClaw + Nemotron reasoning...")
+    for attempt in range(max_retries + 1):
+        try:
+            result = subprocess.run(
+                ["openclaw", "agent", "--local", "--message", message, "--json", "--agent", "main"],
+                capture_output=True,
+                text=True,
+                timeout=300
+        )
+            if result.returncode != 0:
+                print(f"  OpenClaw error: {result.stderr[:200]}")
+                continue
+            output = result.stdout.strip()
+            if not output:
+                print("  Empty response from OpenClaw")
+                continue
+            # Try to parse as JSON first
+            try:
+                data = json.loads(output)
+                if "payloads" in data and data["payloads"]:
+                    return data["payloads"][0].get("text", "")
+                if "reply" in data:
+                    return data["reply"]
+                if "content" in data:
+                    return data["content"]
+                return output
+            except json.JSONDecodeError:
+                return output
+        except subprocess.TimeoutExpired:
+            print(f"  Timeout on attempt {attempt + 1}")
+            continue
+        except Exception as e:
+            print(f"  Error: {e}")
+            continue
+    return None
 
 
 def parse_json_safely(raw):
-    """
-    Robust JSON parser — handles markdown fences, extra text before/after,
-    and truncated responses. Returns (dict, error_string).
-    """
     if not raw:
-        return None, "Empty response from AI"
-
+        return None, "Empty response"
     clean = raw.strip()
-
-    # Strip markdown code fences
     if "```" in clean:
         parts = clean.split("```")
         for part in parts:
@@ -82,13 +95,9 @@ def parse_json_safely(raw):
             if candidate.startswith("{"):
                 clean = candidate
                 break
-
-    # Find outermost JSON object
     start = clean.find("{")
     if start == -1:
-        return None, "No JSON object found in response"
-
-    # Walk to find matching closing brace
+        return None, "No JSON found"
     depth = 0
     end = -1
     in_string = False
@@ -112,62 +121,48 @@ def parse_json_safely(raw):
             if depth == 0:
                 end = i + 1
                 break
-
     if end == -1:
-        # Response was truncated — try parsing what we have
         candidate = clean[start:]
-        # Try to close any open braces
         open_count = candidate.count("{") - candidate.count("}")
         candidate += "}" * open_count
         try:
             return json.loads(candidate), None
         except Exception:
-            return None, "Response was truncated before completing. Please try again."
-
+            return None, "Truncated response"
     try:
         return json.loads(clean[start:end]), None
     except json.JSONDecodeError as e:
-        return None, f"JSON parse error: {str(e)}"
+        return None, f"JSON parse error: {e}"
 
 
-def ask_nemotron_json(system_prompt, user_message, max_tokens=1400, retries=2):
-    """
-    Call Nemotron and parse JSON. Retries on parse failure with a stricter prompt.
-    """
-    for attempt in range(retries + 1):
+def ask_openclaw_json(prompt, max_retries=2):
+    for attempt in range(max_retries + 1):
         if attempt > 0:
-            print(f"  Retrying (attempt {attempt+1})...")
-            # On retry, add extra emphasis on JSON-only output
-            system_prompt = system_prompt + "\n\nCRITICAL: Your ENTIRE response must be a single valid JSON object. Start with { and end with }. No text before or after."
-
-        raw = ask_nemotron(system_prompt, user_message, max_tokens)
+            print(f"  Retrying (attempt {attempt + 1})...")
+            prompt = prompt + "\n\nCRITICAL: Respond with ONLY a valid JSON object. Start with { and end with }. No text before or after."
+        raw = ask_openclaw(prompt)
         result, error = parse_json_safely(raw)
-
         if result is not None:
             return result
-
-        print(f"  Parse failed (attempt {attempt+1}): {error}")
-        print(f"  Raw response preview: {raw[:200]}")
-
-    return {"error": f"Could not parse AI response after {retries+1} attempts. Please try again."}
+        print(f"  Parse failed: {error}")
+    return {"error": "Could not parse response. Please try again."}
 
 
 # ── STRUCTURED PLAN ───────────────────────────────────────────
 def run_pathwise_structured(user_input):
-    print("\n=== PATHWISE PLAN ===")
+    print("\n=== PATHWISE PLAN (via OpenClaw) ===")
     memory = load_memory()
     rates = get_live_rates()
 
-    system = """You are Pathwise, a financial planning AI that speaks like a knowledgeable friend — clear, direct, and human.
-You MUST respond with ONLY valid JSON. Start your response with { and end with }. No markdown, no explanation, no text outside the JSON."""
+    prompt = f"""You are Pathwise, a financial planning AI. Respond with ONLY valid JSON — start with {{ and end with }}.
 
-    prompt = f"""User situation: {user_input}
+User situation: {user_input}
 
 Live rates:
 - HYSA: {rates['hysa'][:300]}
 - S&P 500: {rates['sp500'][:300]}
 
-Return this exact JSON with real numbers:
+Return this exact JSON:
 {{
   "monthly_income": <number>,
   "monthly_expenses": <number>,
@@ -175,35 +170,49 @@ Return this exact JSON with real numbers:
     {{"name": "Credit Card", "balance": <number>, "apr": <number>, "monthly_payment": <number>}},
     {{"name": "Student Loans", "balance": <number>, "apr": <number>, "monthly_payment": <number>}}
   ],
-  "situation_summary": "2-3 sentences explaining their financial picture in plain English — what is working, what needs attention, and the single biggest lever they have right now.",
-  "why_this_order": "1-2 sentences explaining WHY we prioritize the way we do. Make it feel logical, not like a rule.",
+  "situation_summary": "2-3 sentences explaining their financial picture in plain English.",
+  "why_this_order": "1-2 sentences explaining WHY we prioritize the way we do.",
   "monthly_plan": [
     {{
       "label": "Months 1-3",
       "focus": "Emergency Fund First",
-      "allocations": {{
-        "Emergency Fund": <number>,
-        "Credit Card": <number>,
-        "Student Loans": <number>
-      }},
-      "guidance": "One sentence of human advice for this phase — what to watch for, or why this matters.",
-      "milestone": "Emergency fund complete — you now have a real safety net." or null
+      "allocations": {{"Emergency Fund": <number>, "Credit Card": <number>, "Student Loans": <number>}},
+      "guidance": "One sentence of human advice for this phase.",
+      "milestone": "Milestone description or null"
+    }},
+    {{
+      "label": "Months 4-6",
+      "focus": "Attack Credit Card Debt",
+      "allocations": {{"Emergency Fund": <number>, "Credit Card": <number>, "Student Loans": <number>}},
+      "guidance": "One sentence of human advice for this phase.",
+      "milestone": "Milestone description or null"
+    }},
+    {{
+      "label": "Months 7-9",
+      "focus": "Accelerate Debt Payoff",
+      "allocations": {{"Emergency Fund": <number>, "Credit Card": <number>, "Student Loans": <number>}},
+      "guidance": "One sentence of human advice for this phase.",
+      "milestone": "Milestone description or null"
+    }},
+    {{
+      "label": "Months 10-12",
+      "focus": "Build Momentum",
+      "allocations": {{"Emergency Fund": <number>, "Credit Card": <number>, "Student Loans": <number>}},
+      "guidance": "One sentence of human advice for this phase.",
+      "milestone": "Milestone description or null"
     }}
   ],
   "hysa_rate": "5.10% APY",
-  "hysa_tip": "Specific sentence about where to put emergency fund and why.",
-  "sp500_note": "One sentence about what S&P 500 outlook means for them right now.",
-  "key_insight": "The single most important thing they should understand — genuinely useful, not obvious.",
+  "hysa_tip": "Specific sentence about where to put emergency fund.",
+  "sp500_note": "One sentence about S&P 500 outlook.",
+  "key_insight": "The single most important thing they should understand.",
   "debt_free_month": <number 1-24>,
   "debt_free_note": "One encouraging sentence about their debt-free timeline."
 }}
 
-Rules:
-- monthly_plan must have exactly 4 phases covering 12 months
-- allocations must be real numbers summing to roughly (monthly_income - monthly_expenses)
-- Start response with {{ and end with }}"""
+Start with {{ and end with }}. No other text."""
 
-    result = ask_nemotron_json(system, prompt, max_tokens=1500)
+    result = ask_openclaw_json(prompt)
 
     if "error" not in result:
         memory["profile"] = {"input": user_input, "result": result}
@@ -216,7 +225,7 @@ Rules:
 
 # ── STRUCTURED WHAT-IF ────────────────────────────────────────
 def run_whatif_structured(scenario):
-    print("\n=== WHAT-IF ===")
+    print("\n=== WHAT-IF (via OpenClaw) ===")
     memory = load_memory()
 
     if not memory.get("plans"):
@@ -225,18 +234,16 @@ def run_whatif_structured(scenario):
     last_plan = memory["plans"][-1]
     plan_ctx = json.dumps(last_plan.get("structured", {}))[:1200]
 
-    system = """You are Pathwise, a financial planning AI that speaks like a knowledgeable friend.
-You MUST respond with ONLY valid JSON. Start with { and end with }. No text outside the JSON."""
+    prompt = f"""You are Pathwise, a financial planning AI. Respond with ONLY valid JSON — start with {{ and end with }}.
 
-    prompt = f"""Existing plan: {plan_ctx}
-
+Existing plan: {plan_ctx}
 Scenario: {scenario}
 
-Return this exact JSON focused on what changes and WHY it matters:
+Return this exact JSON:
 {{
-  "scenario_title": "Short label, e.g. 'Full-Time Job at $5,000/month'",
-  "what_changes": "2-3 sentences in plain English: what this scenario actually changes. Be specific with dollars and months.",
-  "why_it_matters": "2-3 sentences on the deeper impact — does this change their timeline meaningfully? Does it unlock something they could not do before? What does this mean for their life?",
+  "scenario_title": "Short label for the scenario",
+  "what_changes": "2-3 sentences on what this scenario changes with specific dollars.",
+  "why_it_matters": "2-3 sentences on the deeper impact.",
   "comparisons": [
     {{"metric": "Debt Free By", "original": "Month 14", "new_value": "Month 7", "better": true}},
     {{"metric": "Monthly Surplus", "original": "$1,300", "new_value": "$2,800", "better": true}},
@@ -252,26 +259,22 @@ Return this exact JSON focused on what changes and WHY it matters:
     {{"month": "Jun", "original": 1300, "new": 2800}}
   ],
   "impacts": [
-    {{"icon": "🎯", "title": "Debt Freedom", "body": "Specific detail about how debt payoff changes — months saved, interest avoided, and what becoming debt free unlocks for them next.", "type": "good"}},
-    {{"icon": "📈", "title": "Investment Unlock", "body": "When they can now start investing, how much per month, and what that amount compounds to over 10 years at 7%.", "type": "good"}},
-    {{"icon": "🛡️", "title": "Financial Breathing Room", "body": "How their monthly buffer improves and why that buffer matters — what it protects them from.", "type": "info"}},
-    {{"icon": "💡", "title": "The Bigger Picture", "body": "What this scenario change means for their financial trajectory over the next 5 years — not just the next 12 months.", "type": "info"}}
+    {{"icon": "🎯", "title": "Debt Freedom", "body": "Specific detail about debt payoff changes.", "type": "good"}},
+    {{"icon": "📈", "title": "Investment Unlock", "body": "When they can start investing and what it compounds to.", "type": "good"}},
+    {{"icon": "🛡️", "title": "Financial Breathing Room", "body": "How monthly buffer improves.", "type": "info"}},
+    {{"icon": "💡", "title": "The Bigger Picture", "body": "5-year trajectory impact.", "type": "info"}}
   ],
-  "what_to_do_now": "If this scenario happened today, the first concrete action they should take — specific, with a dollar amount and a reason."
+  "what_to_do_now": "First concrete action with a dollar amount."
 }}
 
-Rules:
-- comparisons must have exactly 4 rows with real numbers from the plan
-- monthly_surplus_chart must have exactly 6 months with realistic numbers
-- impacts must have exactly 4 items with genuine reasoning, not generic filler
-- Start with {{ and end with }}"""
+Start with {{ and end with }}. No other text."""
 
-    return ask_nemotron_json(system, prompt, max_tokens=1300)
+    return ask_openclaw_json(prompt)
 
 
 # ── GENERATE TAB CONTENT ──────────────────────────────────────
 def generate_tab_content(gen_type, context, age=25):
-    print(f"\n=== GENERATE: {gen_type} ===")
+    print(f"\n=== GENERATE: {gen_type} (via OpenClaw) ===")
 
     situation = context.get("situation", "")
     plan = context.get("plan", {})
@@ -284,118 +287,107 @@ def generate_tab_content(gen_type, context, age=25):
     total_debt = sum(d.get("balance", 0) for d in debts)
     has_high_apr = any(d.get("apr", 0) >= 10 for d in debts)
 
-    ctx_str = f"Situation: {situation}\nIncome: ${income}, Expenses: ${expenses}, Surplus: ${surplus}, Debts: {json.dumps(debts)}, Total debt: ${total_debt}"
-
-    system = """You are Pathwise, a financial planning AI that speaks like a knowledgeable friend — clear, warm, and direct.
-You MUST respond with ONLY valid JSON. Start with { and end with }. No text outside the JSON."""
+    ctx_str = f"Situation: {situation}\nIncome: ${income}, Expenses: ${expenses}, Surplus: ${surplus}, Total debt: ${total_debt}"
 
     if gen_type == "milestones":
-        prompt = f"""User data: {ctx_str}
+        prompt = f"""You are Pathwise, a financial planning AI. Respond with ONLY valid JSON.
 
-Return personalized milestone guidance with real numbers and genuine reasoning:
+User data: {ctx_str}
+
+Return this JSON:
 {{
-  "overall_progress": <0-100, honest: 0-10 if they have debt and no savings>,
-  "progress_label": "Just getting started" or "Building momentum" or similar honest label,
-  "where_you_are": "2-3 sentences describing their current position honestly and encouragingly. Name their actual debts and situation.",
+  "overall_progress": <0-100>,
+  "progress_label": "Just getting started",
+  "where_you_are": "2-3 sentences describing their position honestly.",
   "stages": [
     {{
       "name": "Foundation",
       "color": "#007aff",
-      "status": "current",
-      "description": "What this stage means for them specifically.",
+      "description": "What this stage means for them.",
       "milestones": [
-        {{"label": "Build $1,000 emergency fund", "target": "$1,000", "timeline": "Month 1-2", "priority": "high", "why": "This is your safety net so one bad month does not wipe out your progress on debt."}},
-        {{"label": "Pay minimums on all debts on time", "target": "Every month", "timeline": "Ongoing", "priority": "high", "why": "Protects your credit score while you build momentum — a good score saves you thousands in future interest."}}
+        {{"label": "Build $1,000 emergency fund", "target": "$1,000", "timeline": "Month 1-2", "priority": "high", "why": "Your safety net so one bad month does not set you back."}},
+        {{"label": "Pay minimums on all debts", "target": "Every month", "timeline": "Ongoing", "priority": "high", "why": "Protects your credit score while you build momentum."}}
       ]
     }},
     {{
       "name": "Security",
       "color": "#34c759",
-      "status": "upcoming",
-      "description": "What unlocks in this stage for them.",
+      "description": "What unlocks in this stage.",
       "milestones": [
-        {{"label": "Eliminate credit card debt", "target": "<their actual CC balance>", "timeline": "<realistic month>", "priority": "high", "why": "At 19% APR, this is costing you roughly $285/year just in interest. Killing it is your highest guaranteed return."}},
-        {{"label": "3-month emergency fund", "target": "<3x their monthly expenses>", "timeline": "<realistic>", "priority": "medium", "why": "This is the line between surviving a job loss and going back into debt. Do not skip it."}}
+        {{"label": "Eliminate credit card debt", "target": "$<balance>", "timeline": "<realistic>", "priority": "high", "why": "Highest guaranteed return — eliminate the 19% APR cost."}},
+        {{"label": "3-month emergency fund", "target": "$<3x expenses>", "timeline": "<realistic>", "priority": "medium", "why": "The line between surviving a job loss and going back into debt."}}
       ]
     }},
     {{
       "name": "Growth",
       "color": "#ff9500",
-      "status": "future",
       "description": "What becomes possible once debt is cleared.",
       "milestones": [
-        {{"label": "Open and fund Roth IRA", "target": "$<realistic>/mo", "timeline": "<when debt is clear>", "priority": "high", "why": "Tax-free growth for retirement. Every year you delay is compounding you miss — $200/month at 22 vs 30 is a $150k+ difference by retirement."}},
-        {{"label": "Pay off student loans", "target": "<their balance>", "timeline": "<realistic>", "priority": "medium", "why": "At 5% APR, this can coexist with Roth IRA contributions. But finishing it frees up serious monthly cash flow."}}
+        {{"label": "Open and fund Roth IRA", "target": "$200/mo", "timeline": "<after debt>", "priority": "high", "why": "Tax-free growth — every year delayed is compounding missed."}},
+        {{"label": "Pay off student loans", "target": "$<balance>", "timeline": "<realistic>", "priority": "medium", "why": "Frees up serious monthly cash flow."}}
       ]
     }},
     {{
       "name": "Optimization",
       "color": "#5856d6",
-      "status": "future",
       "description": "What financial life looks like at this stage.",
       "milestones": [
-        {{"label": "Max out Roth IRA", "target": "$7,000/year", "timeline": "<realistic year>", "priority": "high", "why": "Full tax-free compounding. At this stage your money is working harder than your debt ever cost you."}},
-        {{"label": "Reach positive net worth", "target": "Assets exceed debts", "timeline": "<realistic>", "priority": "medium", "why": "The milestone where your financial trajectory becomes self-reinforcing."}}
+        {{"label": "Max out Roth IRA", "target": "$7,000/year", "timeline": "<realistic>", "priority": "high", "why": "Full tax-free compounding."}},
+        {{"label": "Reach positive net worth", "target": "Assets exceed debts", "timeline": "<realistic>", "priority": "medium", "why": "Your trajectory becomes self-reinforcing."}}
       ]
     }}
   ],
-  "next_action": "The one thing they should do this week — specific, actionable, with a dollar amount.",
-  "encouragement": "One genuine, non-cheesy sentence acknowledging where they are and why the path ahead is doable."
+  "next_action": "One specific thing to do this week with a dollar amount.",
+  "encouragement": "One genuine encouraging sentence."
 }}
 
-Rules:
-- Use their REAL numbers — actual debt balances, actual income, actual timelines
-- priority must be 'high' or 'medium' — this drives visual emphasis in the UI
-- overall_progress must be honest — with $6,500 in debt and no savings that is 5-10%, not 30%
-- Start with {{ and end with }}"""
+Start with {{ and end with }}."""
 
     elif gen_type == "investing":
         monthly_invest = max(50, int(surplus * 0.25)) if not has_high_apr else 0
 
-        # Calculate real compound interest for projection
-        # monthly_invest * 12 * ((1.07^n - 1) / 0.07) approximately
         def compound(monthly, years):
             if monthly <= 0:
                 return 0
             return int(monthly * 12 * ((1.07**years - 1) / 0.07))
 
         y1 = compound(monthly_invest, 1)
-        y3 = compound(monthly_invest, 3)
         y5 = compound(monthly_invest, 5)
         y10 = compound(monthly_invest, 10)
         y20 = compound(monthly_invest, 20)
         y30 = compound(monthly_invest, 30)
 
-        prompt = f"""User data: {ctx_str}
-Has high-interest debt: {has_high_apr}, Monthly invest capacity: ${monthly_invest}
-Compound growth at 7%: Y1=${y1}, Y3=${y3}, Y5=${y5}, Y10={y10}, Y20=${y20}, Y30=${y30}
+        prompt = f"""You are Pathwise. Respond with ONLY valid JSON.
 
-Return investing guidance with real reasoning:
+User data: {ctx_str}
+Monthly invest capacity: ${monthly_invest}
+Has high APR debt: {has_high_apr}
+
+Return this JSON:
 {{
-  "readiness_status": "not_ready" or "almost_ready" or "ready",
-  "readiness_title": "e.g. 'Clear your credit card first — then invest'",
-  "readiness_explanation": "2-3 sentences explaining WHY they are or are not ready. Reference their actual APR and debt. Explain the math — 19% debt cost vs 7% market return.",
+  "readiness_title": "Clear your credit card first — then invest",
+  "readiness_explanation": "2-3 sentences explaining why with their actual APR and math.",
   "monthly_capacity": {monthly_invest},
   "accounts": [
     {{
       "name": "High-Yield Savings Account",
       "priority": 1,
-      "monthly_amount": <number for emergency fund phase>,
+      "monthly_amount": {int(surplus * 0.3)},
       "status_label": "Open now — before anything else",
       "color": "#34c759",
-      "what_it_is": "A savings account earning 4.5-5%+ APY — dramatically better than a regular bank account, with zero risk.",
-      "why_first": "Before you invest a single dollar, you need 3-6 months of expenses saved here. Without this buffer, one emergency forces you back into credit card debt — undoing months of progress.",
-      "where_to_open": "Marcus by Goldman Sachs, Ally, or SoFi — all offer 4.5%+ APY with no minimums or fees."
+      "what_it_is": "A savings account earning 4.5-5%+ APY with zero risk.",
+      "why_first": "Your emergency fund goes here. Without it one bad month wipes out your debt progress.",
+      "where_to_open": "Marcus by Goldman Sachs, Ally, or SoFi — all 4.5%+ APY, no fees."
     }},
     {{
       "name": "Roth IRA",
       "priority": 2,
-      "monthly_amount": <0 if not ready, else realistic amount>,
-      "status_label": "<'Start Month X after credit card is paid' or 'Ready to open'>",
+      "monthly_amount": {monthly_invest},
+      "status_label": "Start after credit card is paid",
       "color": "#007aff",
-      "what_it_is": "A retirement account where your contributions grow completely tax-free. You pay taxes on the money going in, never on the growth or withdrawals.",
-      "why_first": "At 22 with a moderate income, a Roth IRA is almost certainly better than a Traditional IRA. The reason: you are in a lower tax bracket now than you will be later. Paying tax now on $200/month is cheap compared to paying tax on $200k at retirement.",
-      "where_to_open": "Fidelity (zero minimums, zero fees) — invest in FSKAX or FZROX. Both track the entire US stock market."
+      "what_it_is": "Retirement account where growth is completely tax-free.",
+      "why_first": "At your income level, paying tax now on contributions beats paying tax on withdrawals later.",
+      "where_to_open": "Fidelity — zero minimums, invest in FSKAX (total market index fund)."
     }},
     {{
       "name": "401(k)",
@@ -403,115 +395,94 @@ Return investing guidance with real reasoning:
       "monthly_amount": null,
       "status_label": "When you go full-time",
       "color": "#ff9500",
-      "what_it_is": "Employer-sponsored retirement account. Often includes matching — where your employer adds free money on top of your contribution.",
-      "why_first": "If your employer matches even 3%, that is an instant 100% return on that money. Always contribute enough to capture the full match before doing anything else. It is literally free compensation.",
-      "where_to_open": "Through your employer — ask HR on your first day about the match and vesting schedule."
+      "what_it_is": "Employer retirement account, often with matching.",
+      "why_first": "Always contribute enough to get the full employer match — it is free money.",
+      "where_to_open": "Through your employer — ask HR on day one."
     }}
   ],
   "growth_projection": [
     {{"year": "Year 1", "value": {y1}}},
-    {{"year": "Year 3", "value": {y3}}},
     {{"year": "Year 5", "value": {y5}}},
     {{"year": "Year 10", "value": {y10}}},
     {{"year": "Year 20", "value": {y20}}},
     {{"year": "Year 30", "value": {y30}}}
   ],
-  "the_math": "Concrete sentence: '${monthly_invest}/month at 7% annual return grows to ${y10:,} in 10 years and ${y30:,} in 30 years — entirely from compound interest on a relatively small monthly commitment.'",
-  "biggest_mistake": "The single most common investing mistake for someone in their exact situation, explained in plain terms with a reason.",
+  "the_math": "${monthly_invest}/month at 7% grows to ${y10:,} in 10 years and ${y30:,} in 30 years.",
+  "biggest_mistake": "The most common investing mistake for someone in their situation.",
   "avoid": [
-    {{"thing": "Individual stocks before index funds", "reason": "Even professional fund managers underperform broad index funds 80%+ of the time over 10 years. Start with the whole market, not a bet on one company."}},
-    {{"thing": "Waiting until your debt is fully gone", "reason": "Once your high-interest debt is cleared, the cost of waiting to invest is real. Every year you delay is a year of compounding you cannot get back."}},
-    {{"thing": "Crypto as a core strategy", "reason": "Crypto is speculation, not investing. It is fine as a small side bet, but it is too volatile to be the foundation of a wealth-building plan."}}
+    {{"thing": "Individual stocks before index funds", "reason": "Fund managers underperform index funds 80%+ of the time over 10 years."}},
+    {{"thing": "Waiting until all debt is gone", "reason": "Once high-interest debt is cleared, delaying investing costs real compounding."}},
+    {{"thing": "Crypto as a core strategy", "reason": "Too volatile to be the foundation of wealth building."}}
   ]
 }}
 
-Rules:
-- growth_projection values are already calculated above — use those exact numbers
-- The chart will use these values so they MUST show a curve, not a flat line
-- Start with {{ and end with }}"""
+Start with {{ and end with }}."""
 
     elif gen_type == "future":
         current_age = 22
         years = max(1, age - current_age)
-
-        # Calculate net worth trajectory with real math
-        # Start: negative (debt), pay off debt over ~20 months, then invest
         start_nw = -total_debt
-        monthly_debt_payment = surplus * 0.7  # aggressive during debt phase
+        monthly_debt_payment = surplus * 0.7
         months_to_debt_free = int(total_debt / monthly_debt_payment) if monthly_debt_payment > 0 else 24
         monthly_invest_post_debt = surplus * 0.4
 
         def nw_at_year(y):
             months = y * 12
             if months <= months_to_debt_free:
-                # Still paying debt
                 return int(start_nw + (monthly_debt_payment * months))
             else:
-                # Debt free, now investing
                 invest_months = months - months_to_debt_free
                 invest_growth = monthly_invest_post_debt * 12 * ((1.07**(invest_months/12) - 1) / 0.07) if invest_months > 0 else 0
                 return int(invest_growth)
 
-        # Build projection points
-        proj_ages = []
-        nw_values = []
-        age_points = [current_age, min(current_age+2, age), min(current_age+5, age), min(current_age+10, age), age]
-        age_points = sorted(set(age_points))
-        for a in age_points:
-            proj_ages.append(a)
-            nw_values.append(nw_at_year(a - current_age))
-
-        proj_data = [{"age": a, "net_worth": nw} for a, nw in zip(proj_ages, nw_values)]
-        final_nw = nw_values[-1]
+        age_points = sorted(set([current_age, min(current_age+2, age), min(current_age+5, age), min(current_age+10, age), age]))
+        proj_data = [{"age": a, "net_worth": nw_at_year(a - current_age)} for a in age_points]
+        final_nw = proj_data[-1]["net_worth"]
         best_nw = int(final_nw * 1.35)
-        realistic_nw = final_nw
 
-        prompt = f"""User data: {ctx_str}
-Current age: {current_age}, Target age: {age}, Years: {years}
-Net worth now: ${start_nw}, Monthly surplus: ${surplus}
-Months to debt free: ~{months_to_debt_free}, Monthly invest after debt: ${int(monthly_invest_post_debt)}
-Pre-calculated net worth projection: {json.dumps(proj_data)}
+        prompt = f"""You are Pathwise. Respond with ONLY valid JSON.
+
+User data: {ctx_str}
+Current age: {current_age}, Target age: {age}
+Net worth now: ${start_nw}
+Months to debt free: ~{months_to_debt_free}
 Projected net worth at age {age}: ${final_nw}
-Best case net worth: ${best_nw}
+Net worth projection data: {json.dumps(proj_data)}
 
-Return a financial projection for age {age}:
+Return this JSON:
 {{
-  "headline": "One specific, grounded sentence about what age {age} could look like financially if they follow their plan.",
+  "headline": "One specific sentence about what age {age} could look like financially.",
   "key_metrics": [
-    {{"label": "Estimated Net Worth", "value": "${final_nw:,}", "note": "if they follow their plan", "color": "#007aff"}},
-    {{"label": "Investment Portfolio", "value": "<portion of net worth in investments>", "note": "Roth IRA + index funds", "color": "#34c759"}},
-    {{"label": "Est. Monthly Income", "value": "<projected with career growth from $2,500>", "note": "with typical career progression", "color": "#ff9500"}},
-    {{"label": "Debt Status", "value": "<'Debt Free' or amount>", "note": "<age when debt free>", "color": "#5856d6"}}
+    {{"label": "Estimated Net Worth", "value": "${final_nw:,}", "note": "following their plan", "color": "#007aff"}},
+    {{"label": "Investment Portfolio", "value": "<realistic amount>", "note": "Roth IRA + index funds", "color": "#34c759"}},
+    {{"label": "Est. Monthly Income", "value": "<with career growth>", "note": "typical progression", "color": "#ff9500"}},
+    {{"label": "Debt Status", "value": "Debt Free", "note": "age {current_age + int(months_to_debt_free/12)}", "color": "#5856d6"}}
   ],
   "net_worth_projection": {json.dumps(proj_data)},
-  "what_the_numbers_mean": "2-3 sentences explaining what their projected net worth actually means in real life — what it enables, what options it gives them, what it feels like to have that kind of financial foundation.",
+  "what_the_numbers_mean": "2-3 sentences on what this net worth actually means for their life.",
   "milestones_by_then": [
-    {{"label": "Debt Free", "achieved": <true if age > current_age + months_to_debt_free/12>, "age_achieved": {current_age + int(months_to_debt_free/12)}, "detail": "All $6,500 in debt eliminated. Credit card and student loans gone."}},
-    {{"label": "Emergency Fund Complete", "achieved": true, "age_achieved": {current_age + 1}, "detail": "3 months of expenses saved in a high-yield savings account."}},
-    {{"label": "Roth IRA Started", "achieved": <true if age > current_age + months_to_debt_free/12>, "age_achieved": <realistic>, "detail": "Contributing $<amount>/month after debt payoff. Compound growth has already begun."}},
-    {{"label": "$25k Net Worth", "achieved": <true if realistic_nw >= 25000>, "age_achieved": <estimate>, "detail": "First major net worth milestone — the point where investing starts to feel real."}}
+    {{"label": "Debt Free", "achieved": true, "age_achieved": {current_age + int(months_to_debt_free/12)}, "detail": "All debt eliminated."}},
+    {{"label": "Emergency Fund", "achieved": true, "age_achieved": {current_age + 1}, "detail": "3 months expenses saved."}},
+    {{"label": "Roth IRA Started", "achieved": true, "age_achieved": {current_age + int(months_to_debt_free/12) + 1}, "detail": "Investing monthly after debt payoff."}},
+    {{"label": "$25k Net Worth", "achieved": {str(final_nw >= 25000).lower()}, "age_achieved": <estimate>, "detail": "First major net worth milestone."}}
   ],
   "best_case": {{
     "net_worth": "${best_nw:,}",
-    "description": "If you max out your Roth IRA annually, get a raise within 2 years, and avoid lifestyle inflation as income grows."
+    "description": "If you max Roth IRA and get a raise within 2 years."
   }},
   "realistic_case": {{
-    "net_worth": "${realistic_nw:,}",
-    "description": "Following your current plan consistently — paying off debt on schedule and investing the surplus."
+    "net_worth": "${final_nw:,}",
+    "description": "Following your current plan consistently."
   }},
-  "the_decision_that_matters_most": "The single most impactful financial decision they can make right now to improve this projection — specific, with a dollar amount and a clear reason."
+  "the_decision_that_matters_most": "The single most impactful decision they can make right now."
 }}
 
-Rules:
-- net_worth_projection must use EXACTLY the pre-calculated data provided above: {json.dumps(proj_data)}
-- Do not change these numbers — they are mathematically correct
-- key_metrics values must be consistent with the projection data
-- Start with {{ and end with }}"""
+Start with {{ and end with }}."""
 
     else:
         return {"error": f"Unknown type: {gen_type}"}
 
-    return ask_nemotron_json(system, prompt, max_tokens=1400)
+    return ask_openclaw_json(prompt)
 
 
 def run_pathwise(user_input):
@@ -523,7 +494,7 @@ def run_whatif(scenario):
 
 
 if __name__ == "__main__":
-    print("\nWelcome to Pathwise")
+    print("\nWelcome to Pathwise (powered by OpenClaw + Nemotron)")
     print("1. Build my financial plan")
     print("2. What-if scenario")
     choice = input("\nChoose (1 or 2): ").strip()
