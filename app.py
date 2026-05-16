@@ -852,9 +852,11 @@ HTML = """
 </html>
 """
 
+from flask import Response
+
 @app.route("/")
 def index():
-    return render_template_string(HTML)
+    return Response(HTML, mimetype='text/html')
 
 @app.route("/plan", methods=["POST"])
 def plan():
