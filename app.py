@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, Response
 from agent import run_pathwise, run_whatif
 
 app = Flask(__name__)
@@ -852,7 +852,6 @@ HTML = """
 </html>
 """
 
-from flask import Response
 
 @app.route("/")
 def index():
