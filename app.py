@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, Response
 from agent import run_pathwise, run_whatif
 
 app = Flask(__name__)
@@ -823,7 +823,7 @@ HTML = """
         { max: 22, color: '#007aff', range: '18–21', title: 'Build the Base', sub: 'Your biggest asset right now is time — not money.', points: ['Focus on saving habits, not just amounts','Build credit with responsible use','$50/month invested at 20 grows more than $200/month invested at 30'], insight: 'Starting early is your single biggest financial advantage.' },
         { max: 27, color: '#34c759', range: '22–26', title: 'Build Momentum', sub: 'More income now. This is when habits become systems.', points: ['Always get the full 401k employer match','Pay off high-interest debt aggressively','Start investing in index funds regularly'], insight: 'This decade is when the gap between investors and non-investors starts to widen.' },
         { max: 32, color: '#ff9500', range: '27–31', title: 'Optimize and Grow', sub: 'Real earning potential. Focus on widening the income-spending gap.', points: ['Max out Roth IRA ($7,000/year)','Increase 401k beyond the match','Evaluate whether buying property fits your goals'], insight: 'Decisions in your late 20s shape your trajectory for decades.' },
-        { max: 41, color: '#5856d6', range: '32–40', title: 'Wealth Building', sub: 'Compounding is doing the heavy lifting. Don\'t interrupt it.', points: ['Review investment portfolio annually','Consider a fee-only financial advisor','Protect wealth with adequate insurance'], insight: 'Focus shifts from learning to optimizing. Systems matter more than tactics.' },
+        { max: 41, color: '#5856d6', range: '32–40', title: 'Wealth Building', sub: 'Compounding is doing the heavy lifting. Don&#39;t interrupt it.', points: ['Review investment portfolio annually','Consider a fee-only financial advisor','Protect wealth with adequate insurance'], insight: 'Focus shifts from learning to optimizing. Systems matter more than tactics.' },
     ];
 
     function updateFuture(age) {
@@ -852,7 +852,6 @@ HTML = """
 </html>
 """
 
-from flask import Response
 
 @app.route("/")
 def index():
