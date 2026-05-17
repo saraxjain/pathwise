@@ -1,6 +1,6 @@
 {
   "profile": {
-    "input": "I make $2,000/month, have $3,000 in credit card debt at 20% APR, expenses $1,200, want debt free in 1 year.",
+    "input": "I make $2,000/month, have $3,000 credit card debt at 20% APR, expenses $1,200, want debt free in 1 year.",
     "result": {
       "monthly_income": 2000,
       "monthly_expenses": 1200,
@@ -18,8 +18,8 @@
           "monthly_payment": 0
         }
       ],
-      "situation_summary": "You earn $2,000 monthly, spend $1,200 on expenses, leaving $800 for debt repayment and savings. You have $3,000 in credit card debt at 20% APR, costing about $50 monthly in interest.",
-      "why_this_order": "We prioritize building a small emergency fund first to avoid new debt from unexpected expenses, then attack the high-interest credit card debt aggressively because its 20% APR far exceeds any investment returns.",
+      "situation_summary": "You earn $2,000 per month, spend $1,200 on expenses, leaving $800 for debt repayment and savings. You have $3,000 in credit card debt at 20% APR, which costs about $50 in interest each month.",
+      "why_this_order": "We prioritize building a small emergency fund first to prevent new debt from unexpected expenses, then aggressively pay off the high-interest credit card debt because its 20% APR far exceeds any investment returns.",
       "monthly_plan": [
         {
           "label": "Months 1-3",
@@ -68,7 +68,7 @@
       ],
       "hysa_rate": "5.10% APY",
       "hysa_tip": "Put your emergency fund in a high-yield savings account to earn interest while keeping it safe and accessible.",
-      "sp500_note": "Analysts forecast an average return of +12% for the S&P 500 in 2026, driven by continued earnings growth.",
+      "sp500_note": "Analysts forecast an average return of +12% for the S&P 500 in 2026, driven by continued earnings growth and resilient consumer demand.",
       "key_insight": "Paying off high-interest credit card debt guarantees a 20% return, better than any investment you could make.",
       "debt_free_month": 5,
       "debt_free_note": "You'll be debt-free in just 5 months, freeing up $800/month for your emergency fund and other goals."
@@ -332,6 +332,158 @@
         "debt_free_month": 5,
         "debt_free_note": "You'll be debt-free in just 5 months, freeing up $800/month for your emergency fund and other goals."
       }
+    },
+    {
+      "timestamp": "2026-05-16T17:23:14.252863",
+      "input": "I make $2,000/month, have $3,000 credit card debt at 20% APR, expenses $1,200, want debt free in 1 year.",
+      "structured": {
+        "monthly_income": 2000,
+        "monthly_expenses": 1200,
+        "debts": [
+          {
+            "name": "Credit Card",
+            "balance": 3000,
+            "apr": 20,
+            "monthly_payment": 0
+          },
+          {
+            "name": "Student Loans",
+            "balance": 0,
+            "apr": 0,
+            "monthly_payment": 0
+          }
+        ],
+        "situation_summary": "You earn $2,000 monthly, spend $1,200 on expenses, leaving $800 for debt repayment and savings. You have $3,000 in credit card debt at 20% APR, costing about $50 monthly in interest.",
+        "why_this_order": "We prioritize building a small emergency fund first to avoid new debt from unexpected expenses, then attack the high-interest credit card debt aggressively because its 20% APR far exceeds any investment returns.",
+        "monthly_plan": [
+          {
+            "label": "Months 1-3",
+            "focus": "Emergency Fund First",
+            "allocations": {
+              "Emergency Fund": 200,
+              "Credit Card": 600,
+              "Student Loans": 0
+            },
+            "guidance": "Save $200/month for emergencies while paying $600 toward your credit card.",
+            "milestone": "Emergency fund reaches $600"
+          },
+          {
+            "label": "Months 4-6",
+            "focus": "Attack Credit Card Debt",
+            "allocations": {
+              "Emergency Fund": 0,
+              "Credit Card": 800,
+              "Student Loans": 0
+            },
+            "guidance": "Put all disposable income toward the credit card to eliminate it quickly.",
+            "milestone": "Credit card debt paid off (by month 5)"
+          },
+          {
+            "label": "Months 7-9",
+            "focus": "Accelerate Debt Payoff",
+            "allocations": {
+              "Emergency Fund": 800,
+              "Credit Card": 0,
+              "Student Loans": 0
+            },
+            "guidance": "Redirect the former credit card payments to build your emergency fund faster.",
+            "milestone": "Emergency fund grows to $3,000"
+          },
+          {
+            "label": "Months 10-12",
+            "focus": "Build Momentum",
+            "allocations": {
+              "Emergency Fund": 800,
+              "Credit Card": 0,
+              "Student Loans": 0
+            },
+            "guidance": "Continue saving aggressively to prepare for future financial goals.",
+            "milestone": "Emergency fund reaches $5,400"
+          }
+        ],
+        "hysa_rate": "5.10% APY",
+        "hysa_tip": "Put your emergency fund in a high-yield savings account to earn interest while keeping it safe and accessible.",
+        "sp500_note": "Analysts forecast an average return of +12% for the S&P 500 in 2026, citing continued earnings growth and resilient consumer demand.",
+        "key_insight": "Paying off high-interest credit card debt guarantees a 20% return, better than any investment you could make.",
+        "debt_free_month": 5,
+        "debt_free_note": "You'll be debt-free in just 5 months, freeing up $800/month for your emergency fund and other goals."
+      }
+    },
+    {
+      "timestamp": "2026-05-16T17:27:28.377849",
+      "input": "I make $2,000/month, have $3,000 credit card debt at 20% APR, expenses $1,200, want debt free in 1 year.",
+      "structured": {
+        "monthly_income": 2000,
+        "monthly_expenses": 1200,
+        "debts": [
+          {
+            "name": "Credit Card",
+            "balance": 3000,
+            "apr": 20,
+            "monthly_payment": 0
+          },
+          {
+            "name": "Student Loans",
+            "balance": 0,
+            "apr": 0,
+            "monthly_payment": 0
+          }
+        ],
+        "situation_summary": "You earn $2,000 per month, spend $1,200 on expenses, leaving $800 for debt repayment and savings. You have $3,000 in credit card debt at 20% APR, which costs about $50 in interest each month.",
+        "why_this_order": "We prioritize building a small emergency fund first to prevent new debt from unexpected expenses, then aggressively pay off the high-interest credit card debt because its 20% APR far exceeds any investment returns.",
+        "monthly_plan": [
+          {
+            "label": "Months 1-3",
+            "focus": "Emergency Fund First",
+            "allocations": {
+              "Emergency Fund": 200,
+              "Credit Card": 600,
+              "Student Loans": 0
+            },
+            "guidance": "Save $200/month for emergencies while paying $600 toward your credit card.",
+            "milestone": "Emergency fund reaches $600"
+          },
+          {
+            "label": "Months 4-6",
+            "focus": "Attack Credit Card Debt",
+            "allocations": {
+              "Emergency Fund": 0,
+              "Credit Card": 800,
+              "Student Loans": 0
+            },
+            "guidance": "Put all disposable income toward the credit card to eliminate it quickly.",
+            "milestone": "Credit card debt paid off (by month 5)"
+          },
+          {
+            "label": "Months 7-9",
+            "focus": "Accelerate Debt Payoff",
+            "allocations": {
+              "Emergency Fund": 800,
+              "Credit Card": 0,
+              "Student Loans": 0
+            },
+            "guidance": "Redirect the former credit card payments to build your emergency fund faster.",
+            "milestone": "Emergency fund grows to $3,000"
+          },
+          {
+            "label": "Months 10-12",
+            "focus": "Build Momentum",
+            "allocations": {
+              "Emergency Fund": 800,
+              "Credit Card": 0,
+              "Student Loans": 0
+            },
+            "guidance": "Continue saving aggressively to prepare for future financial goals.",
+            "milestone": "Emergency fund reaches $5,400"
+          }
+        ],
+        "hysa_rate": "5.10% APY",
+        "hysa_tip": "Put your emergency fund in a high-yield savings account to earn interest while keeping it safe and accessible.",
+        "sp500_note": "Analysts forecast an average return of +12% for the S&P 500 in 2026, driven by continued earnings growth and resilient consumer demand.",
+        "key_insight": "Paying off high-interest credit card debt guarantees a 20% return, better than any investment you could make.",
+        "debt_free_month": 5,
+        "debt_free_note": "You'll be debt-free in just 5 months, freeing up $800/month for your emergency fund and other goals."
+      }
     }
   ],
   "sessions": [
@@ -370,6 +522,14 @@
     {
       "timestamp": "2026-05-16T12:01:32.445734",
       "input": "I make $2,000/month, have $3,000 in credit card debt at 20% APR, expenses $1,200, want debt free in 1 year."
+    },
+    {
+      "timestamp": "2026-05-16T17:23:14.252402",
+      "input": "I make $2,000/month, have $3,000 credit card debt at 20% APR, expenses $1,200, want debt free in 1 year."
+    },
+    {
+      "timestamp": "2026-05-16T17:27:28.377809",
+      "input": "I make $2,000/month, have $3,000 credit card debt at 20% APR, expenses $1,200, want debt free in 1 year."
     }
   ]
 }

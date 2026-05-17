@@ -52,7 +52,7 @@ def ask_openclaw(message, max_retries=2):
                 ["openclaw", "agent", "--local", "--message", message, "--json", "--agent", "main"],
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=600
         )
             if result.returncode != 0:
                 print(f"  OpenClaw error: {result.stderr[:200]}")
